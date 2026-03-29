@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetGuard Login</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.login-header h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.login-header p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+    background: linear-gradient(135deg, #2980b9, #1f618d);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.error-message {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    color: #ffcccc;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: none;
+    display:block;
+}
+
+.demo-credentials {
+    background: rgba(46, 204, 113, 0.1);
+    border-left: 3px solid #2ecc71;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.demo-credentials strong {
+    color: #2ecc71;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.feature {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.feature-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 600px) {
+    .login-container {
+        margin: 20px;
+        padding: 30px 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-container">
+    <div class="login-header">
+        <h1>🚗 FleetGuard</h1>
+        <p>Fleet Management System</p>
+    </div>
+
+    {% if error %}
+    <div class="error-message">⚠️ {{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit">🔓 Login</button>
+    </form>
+
+    <div class="demo-credentials">
+        <strong>Demo Credentials:</strong><br>
+        👤 <strong>Admin:</strong> admin / admin123<br>
+        🚙 <strong>Driver:</strong> driver1 / driver123
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <div class="feature-icon">📍</div>
+            <div>Real-time GPS Tracking</div>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🚨</div>
+            <div>Emergency SOS</div>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">📊</div>
+            <div>Live Analytics</div>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">📋</div>
+            <div>Reports</div>
+        </div>
+    </div>
+
+    <div class="login-footer">
+        <p>Secure fleet management & vehicle tracking system</p>
+        <p>© 2026 FleetGuard. All rights reserved.</p>
+    </div>
+</div>
+
+</body>
+</html>

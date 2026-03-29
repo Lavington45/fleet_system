@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - FleetGuard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+    background: #e8ecf1;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1a202c, #111827);
+    color: white;
+    padding: 20px;
+    height: 100vh;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar h2 {
+    margin-bottom: 30px;
+    font-size: 24px;
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.sidebar-section {
+    margin-bottom: 20px;
+}
+
+.sidebar-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+    background: rgba(52, 152, 219, 0.3);
+    color: #3498db;
+}
+
+.sidebar-link.active {
+    background: #3498db;
+    color: white;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    color: white;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 28px;
+}
+
+.logout-btn {
+    background: #e74c3c;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background: #c0392b;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    grid-auto-rows: max-content;
+    min-height: 0;
+    align-content: start;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+#map {
+    height: 700px;
+    border-radius: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+.vehicles-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.vehicle-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vehicle-item.offline {
+    border-left-color: #e74c3c;
+    opacity: 0.7;
+}
+
+.vehicle-name {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.vehicle-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-online {
+    background: #2ecc71;
+    color: white;
+}
+
+.status-offline {
+    background: #e74c3c;
+    color: white;
+}
+
+.alerts-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.alert-item {
+    padding: 12px;
+    background: #fff3cd;
+    border-left: 4px solid #f39c12;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.alert-item.critical {
+    background: #f8d7da;
+    border-left-color: #e74c3c;
+}
+
+.alert-time {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.incidents-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.incident-item {
+    padding: 12px;
+    background: #fff3cd;
+    border-left: 4px solid #f39c12;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.incident-severity {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.severity-high {
+    background: #e74c3c;
+    color: white;
+}
+
+.severity-medium {
+    background: #f39c12;
+    color: white;
+}
+
+.severity-low {
+    background: #3498db;
+    color: white;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-success {
+    background: #2ecc71;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #27ae60;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+    min-height: 0;
+    overflow: visible;
+}
+
+@media (max-width: 1600px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    color: #7f8c8d;
+    font-weight: bold;
+}
+
+.tab-btn.active {
+    border-bottom-color: #3498db;
+    color: #3498db;
+}
+
+.fade {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>🚗 FleetGuard</h2>
+    
+    <div class="sidebar-section">
+        <div class="sidebar-title">Main</div>
+        <div class="sidebar-link active" onclick="showTab('dashboard')">📊 Dashboard</div>
+        <div class="sidebar-link" onclick="showTab('vehicles')">🚙 Vehicles</div>
+        <div class="sidebar-link" onclick="showTab('assignments')">👤 Assignments</div>
+        <div class="sidebar-link" onclick="showTab('users')">👥 Users</div>
+        <div class="sidebar-link" onclick="showTab('incidents')">⚠️ Incidents</div>
+        <div class="sidebar-link" onclick="showTab('alerts')">🚨 SOS Alerts</div>
+        <div class="sidebar-link" onclick="showTab('reports')">📋 Reports</div>
+    </div>
+    
+    <div class="sidebar-section">
+        <div class="sidebar-title">Tools</div>
+        <div class="sidebar-link" onclick="generateReport()">📊 Generate Report</div>
+        <div class="sidebar-link" onclick="logoutAdmin()">🚪 Logout</div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+        <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+    </div>
+
+    <div class="content">
+        <!-- LIVE MAP -->
+        <div class="card full-width" id="dashboard-tab">
+            <div class="card-title">📍 Live Fleet Tracking Map</div>
+            <div id="map"></div>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="card" id="dashboard-tab">
+            <div class="card-title">📊 Fleet Statistics</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-online">0</div>
+                    <div class="stat-label">Online Vehicles</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                    <div class="stat-value" id="stat-offline">0</div>
+                    <div class="stat-label">Offline Vehicles</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                    <div class="stat-value" id="stat-incidents">0</div>
+                    <div class="stat-label">Active Incidents</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                    <div class="stat-value" id="stat-alerts">0</div>
+                    <div class="stat-label">SOS Alerts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INCIDENTS SUMMARY -->
+        <div class="card" id="dashboard-tab">
+            <div class="card-title">⚠️ Recent Incidents</div>
+            <div class="incidents-list" id="incidents-summary-container" style="max-height: 300px;"></div>
+        </div>
+
+        <!-- ALERTS SUMMARY -->
+        <div class="card full-width" id="dashboard-tab">
+            <div class="card-title">🚨 Active SOS Alerts</div>
+            <div class="alerts-list" id="alerts-summary-container" style="max-height: 300px;"></div>
+        </div>
+
+        <!-- VEHICLES LIST -->
+        <div class="card" id="vehicles-tab" style="display: none;">
+            <div class="card-title">🚙 All Vehicles</div>
+            <div class="vehicles-list" id="vehicles-container"></div>
+        </div>
+
+        <!-- VEHICLE ASSIGNMENTS -->
+        <div class="card full-width" id="assignments-tab" style="display: none;">
+            <div class="card-title">👤 Vehicle Assignments</div>
+            
+            <!-- Assignment Form -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">Assign Vehicle to Driver</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Select Vehicle:</label>
+                        <select id="assign-vehicle" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">-- Choose Vehicle --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Select Driver:</label>
+                        <select id="assign-driver" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">-- Choose Driver --</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn-success" onclick="submitAssignment()" style="width: 100%; padding: 10px;">✓ Assign Vehicle</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Assignments -->
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">Current Assignments</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div id="assignments-container" style="grid-column: 1 / -1;"></div>
+            </div>
+        </div>
+
+        <!-- USER MANAGEMENT PANEL -->
+        <div class="card full-width" id="users-tab" style="display: none;">
+            <div class="card-title">👥 User Management</div>
+            
+            <!-- Add User Form -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">Add New User</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Username:</label>
+                        <input type="text" id="new-username" placeholder="Enter username" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Full Name:</label>
+                        <input type="text" id="new-fullname" placeholder="Enter full name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Password:</label>
+                        <input type="password" id="new-password" placeholder="Minimum 6 characters" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Role:</label>
+                        <select id="new-role" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="driver">Driver</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn-success" onclick="submitNewUser()" style="width: 100%; padding: 10px;">+ Add User</button>
+            </div>
+            
+            <!-- Users List -->
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">System Users</h3>
+            <div id="users-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+        </div>
+
+        <!-- INCIDENTS PANEL -->
+        <div class="card" id="incidents-tab" style="display: none;">
+            <div class="card-title">⚠️ Reported Incidents</div>
+            <div class="incidents-list" id="incidents-container"></div>
+        </div>
+
+        <!-- SOS ALERTS PANEL -->
+        <div class="card" id="alerts-tab" style="display: none;">
+            <div class="card-title">🚨 Emergency SOS Alerts</div>
+            <div class="alerts-list" id="alerts-container"></div>
+        </div>
+
+        <!-- REPORTS PANEL -->
+        <div class="card" id="reports-tab" style="display: none;">
+            <div class="card-title">📋 Generated Reports</div>
+            <div class="action-buttons">
+                <button class="btn-success" onclick="openReportModal()">+ Generate New Report</button>
+            </div>
+            <div id="reports-container" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+
+        <!-- TRIP HISTORY -->
+        <div class="card" id="dashboard-tab">
+            <div class="card-title">📍 Trip History & Playback</div>
+            <select id="vehicle-select" onchange="loadTripHistory()" style="margin-bottom: 10px;">
+                <option value="">Select Vehicle...</option>
+            </select>
+            <div id="trips-container" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Generation Modal -->
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeReportModal()">&times;</span>
+        <h2>Generate Report</h2>
+        
+        <label>Report Type:</label>
+        <select id="report-type">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Custom</option>
+        </select>
+
+        <label>Vehicle (Optional):</label>
+        <select id="report-vehicle">
+            <option value="">All Vehicles</option>
+        </select>
+
+        <label>Start Date:</label>
+        <input type="date" id="report-start-date">
+
+        <label>End Date:</label>
+        <input type="date" id="report-end-date">
+
+        <button class="btn-success" onclick="submitReport()" style="width: 100%; margin-top: 15px;">Generate Report</button>
+    </div>
+</div>
+
+<!-- Trip Replay Modal -->
+<div id="replayModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeReplayModal()">&times;</span>
+        <h2>Trip Replay</h2>
+        <div id="replay-map" style="height: 400px; margin: 15px 0; border-radius: 8px;"></div>
+        <button class="btn-primary" onclick="startReplay()">▶ Start Replay</button>
+        <button class="btn-danger" onclick="stopReplay()">⏹ Stop Replay</button>
+    </div>
+</div>
+
+<script>
+let map, markersMap = {}, replayMap;
+let updateInterval, replayInterval;
+let selectedTrip = null;
+let isReplaying = false;
+
+// Initialize Main Map
+function initMap() {
+    map = L.map('map').setView([-1.286389, 36.816667], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+}
+
+// Load Vehicles
+function loadVehicles() {
+    fetch('/api/vehicles', { credentials: 'same-origin' })
+        .then(r => {
+            console.log('Vehicles response status:', r.status);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Vehicles data received:', data);
+            if (data && !data.error && Array.isArray(data)) {
+                updateStats();
+                updateVehiclesList(data);
+                updateVehicleMarkers(data);
+                updateVehicleSelect(data);
+            } else {
+                console.error('Invalid vehicles data:', data);
+            }
+        })
+        .catch(err => console.error('Error loading vehicles:', err));
+}
+
+function updateVehiclesList(vehicles) {
+    const container = document.getElementById('vehicles-container');
+    container.innerHTML = '';
+    
+    vehicles.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'vehicle-item ' + (v.connectivity_status === 'online' ? '' : 'offline');
+        div.innerHTML = `
+            <div>
+                <div class="vehicle-name">${v.vehicle_name}</div>
+                <div>${v.registration_number} | Speed: ${v.speed} km/h</div>
+            </div>
+            <div class="vehicle-status ${v.connectivity_status === 'online' ? 'status-online' : 'status-offline'}">
+                ${v.connectivity_status.toUpperCase()}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function updateVehicleMarkers(vehicles) {
+    console.log('Updating vehicle markers:', vehicles.length, 'vehicles');
+    vehicles.forEach(v => {
+        if (v.lat && v.lon) {
+            console.log(`Moving ${v.vehicle_name} to ${v.lat}, ${v.lon}`);
+            const icon = L.icon({
+                iconUrl: v.connectivity_status === 'online' 
+                    ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png'
+                    : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            if (markersMap[v.vehicle_id]) {
+                // Update existing marker
+                markersMap[v.vehicle_id].setLatLng([v.lat, v.lon]);
+                markersMap[v.vehicle_id].setIcon(icon);
+                markersMap[v.vehicle_id].setPopupContent(`<b>${v.vehicle_name}</b><br>Speed: ${v.speed} km/h<br>Status: ${v.connectivity_status}`);
+            } else {
+                // Create new marker
+                markersMap[v.vehicle_id] = L.marker([v.lat, v.lon], { icon }).addTo(map)
+                    .bindPopup(`<b>${v.vehicle_name}</b><br>Speed: ${v.speed} km/h<br>Status: ${v.connectivity_status}`);
+            }
+        }
+    });
+}
+
+function updateVehicleSelect(vehicles) {
+    const select = document.getElementById('vehicle-select');
+    vehicles.forEach(v => {
+        if (!select.querySelector(`option[value="${v.vehicle_id}"]`)) {
+            const option = document.createElement('option');
+            option.value = v.vehicle_id;
+            option.textContent = v.vehicle_name;
+            select.appendChild(option);
+        }
+    });
+    
+    const reportSelect = document.getElementById('report-vehicle');
+    vehicles.forEach(v => {
+        if (!reportSelect.querySelector(`option[value="${v.vehicle_id}"]`)) {
+            const option = document.createElement('option');
+            option.value = v.vehicle_id;
+            option.textContent = v.vehicle_name;
+            reportSelect.appendChild(option);
+        }
+    });
+}
+
+function updateStats() {
+    fetch('/api/vehicles')
+        .then(r => r.json())
+        .then(vehicles => {
+            const online = vehicles.filter(v => v.connectivity_status === 'online').length;
+            const offline = vehicles.length - online;
+            
+            document.getElementById('stat-online').textContent = online;
+            document.getElementById('stat-offline').textContent = offline;
+        });
+    
+    fetch('/api/incidents')
+        .then(r => r.json())
+        .then(incidents => {
+            const active = incidents.filter(i => i.status === 'reported').length;
+            document.getElementById('stat-incidents').textContent = active;
+        });
+    
+    fetch('/api/emergency_alerts')
+        .then(r => r.json())
+        .then(alerts => {
+            document.getElementById('stat-alerts').textContent = alerts.length;
+        });
+}
+
+function formatCoord(value) {
+    return (typeof value === 'number' && isFinite(value)) ? value.toFixed(4) : 'N/A';
+}
+
+function formatDate(value) {
+    if (!value) return 'N/A';
+    const d = new Date(value);
+    return (d instanceof Date && !isNaN(d)) ? d.toLocaleString() : 'N/A';
+}
+
+// Load Incidents (for full page)
+function loadIncidents() {
+    fetch('/api/incidents', { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            console.log('Incidents data:', data);
+            const container = document.getElementById('incidents-container');
+            if (container) {
+                container.innerHTML = '';
+                
+                if (!data || data.error || data.length === 0) {
+                    container.innerHTML = '<p>No incidents reported</p>';
+                } else {
+                    data.forEach(inc => {
+                        const div = document.createElement('div');
+                        div.className = 'incident-item';
+                        div.innerHTML = `
+                            <div>
+                                <strong>${inc.vehicle_name || 'Unknown vehicle'}</strong> - ${inc.full_name || 'Unknown driver'}
+                                <span class="incident-severity severity-${inc.severity || 'unknown'}">${(inc.severity || 'unknown').toUpperCase()}</span>
+                            </div>
+                            <div><strong>Type:</strong> ${inc.incident_type || 'Unknown'}</div>
+                            <div><strong>Location:</strong> ${formatCoord(inc.lat)}, ${formatCoord(inc.lon)}</div>
+                            <div><strong>Description:</strong> ${inc.description || 'N/A'}</div>
+                            <div class="alert-time">${formatDate(inc.reported_at)}</div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            }
+            
+            // Also update summary
+            loadIncidentsSummary();
+        })
+        .catch(err => {
+            console.error('Error loading incidents:', err);
+            const container = document.getElementById('incidents-container');
+            if (container) {
+                container.innerHTML = `<p style="color: red;">Error loading incidents: ${err.message}</p>`;
+            }
+        });
+}
+
+function loadIncidentsSummary() {
+    fetch('/api/incidents', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('incidents-summary-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.error || data.length === 0) {
+                container.innerHTML = '<p style="padding: 10px; color: #7f8c8d;">No incidents</p>';
+            } else {
+                data.slice(0, 3).forEach(inc => {
+                    const div = document.createElement('div');
+                    div.className = 'incident-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>${inc.vehicle_name || 'Unknown vehicle'}</strong> - ${inc.full_name || 'Unknown driver'}
+                            <span class="incident-severity severity-${inc.severity || 'unknown'}">${(inc.severity || 'unknown').toUpperCase()}</span>
+                        </div>
+                        <div><strong>${inc.incident_type || 'Unknown'}</strong> at ${formatCoord(inc.lat)}, ${formatCoord(inc.lon)}</div>
+                        <div class="alert-time">${formatDate(inc.reported_at)}</div>
+                    `;
+                    container.appendChild(div);
+                });
+                if (data.length > 3) {
+                    const more = document.createElement('p');
+                    more.style = 'padding: 10px; color: #3498db; cursor: pointer; font-weight: bold;';
+                    more.textContent = `+${data.length - 3} more incidents`;
+                    more.onclick = () => showTab('incidents');
+                    container.appendChild(more);
+                }
+            }
+        })
+        .catch(err => console.error('Error loading incidents summary:', err));
+}
+
+// Load Emergency Alerts (for full page)
+function loadEmergencyAlerts() {
+    fetch('/api/emergency_alerts', { credentials: 'same-origin' })
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            console.log('Alerts data:', data);
+            const container = document.getElementById('alerts-container');
+            if (container) {
+                container.innerHTML = '';
+                
+                if (!data || data.error || data.length === 0) {
+                    container.innerHTML = '<p>No active SOS alerts</p>';
+                } else {
+                    data.forEach(alert => {
+                        const div = document.createElement('div');
+                        div.className = 'alert-item critical';
+                        div.innerHTML = `
+                            <div style="font-weight: bold; font-size: 16px;">🚨 ${alert.vehicle_name || 'Unknown vehicle'}</div>
+                            <div><strong>Driver:</strong> ${alert.full_name || 'Unknown driver'}</div>
+                            <div><strong>Message:</strong> ${alert.message || 'No message'}</div>
+                            <div><strong>Location:</strong> ${formatCoord(alert.lat)}, ${formatCoord(alert.lon)}</div>
+                            <div><strong>Priority:</strong> ${alert.priority || 'normal'}</div>
+                            <button class="btn-primary" onclick="acknowledgeAlert(${alert.alert_id})" style="width: 100%; margin-top: 10px;">✓ Acknowledge</button>
+                            <div class="alert-time">${formatDate(alert.alert_time)}</div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            }
+            
+            // Also update summary
+            loadAlertsSummary();
+        })
+        .catch(err => {
+            console.error('Error loading alerts:', err);
+            const container = document.getElementById('alerts-container');
+            if (container) {
+                container.innerHTML = `<p style="color: red;">Error loading alerts: ${err.message}</p>`;
+            }
+        });
+}
+
+function loadAlertsSummary() {
+    fetch('/api/emergency_alerts', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('alerts-summary-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.error || data.length === 0) {
+                container.innerHTML = '<p style="padding: 10px; color: #7f8c8d;">No active SOS alerts</p>';
+            } else {
+                data.forEach(alert => {
+                    const div = document.createElement('div');
+                    div.className = 'alert-item critical';
+                    div.innerHTML = `
+                        <div style="font-weight: bold;">🚨 ${alert.vehicle_name || 'Unknown vehicle'} - ${alert.full_name || 'Unknown driver'}</div>
+                        <div><strong>Message:</strong> ${alert.message || 'No message'}</div>
+                        <div><strong>Location:</strong> ${formatCoord(alert.lat)}, ${formatCoord(alert.lon)}</div>
+                        <button class="btn-primary" onclick="acknowledgeAlert(${alert.alert_id})" style="width: 100%; margin-top: 8px; padding: 6px;">✓ Acknowledge</button>
+                        <div class="alert-time">${formatDate(alert.alert_time)}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        })
+        .catch(err => console.error('Error loading alerts summary:', err));
+}
+
+// Load Trip History
+function loadTripHistory() {
+    const vehicleId = document.getElementById('vehicle-select').value;
+    if (!vehicleId) return;
+    
+    fetch(`/api/trip_history?vehicle_id=${vehicleId}&limit=20`, { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('trips-container');
+            container.innerHTML = '';
+            
+            if (data.error || data.length === 0) {
+                container.innerHTML = '<p>No trip history available</p>';
+                return;
+            }
+            
+            data.forEach(trip => {
+                const div = document.createElement('div');
+                div.style = 'padding: 10px; background: #f8f9fa; margin-bottom: 10px; border-radius: 5px; cursor: pointer;';
+                div.innerHTML = `
+                    <strong>${new Date(trip.start_time).toLocaleString()}</strong><br>
+                    Distance: ${trip.distance_traveled} km | Avg Speed: ${trip.avg_speed} km/h
+                    <button class="btn-primary" onclick="openReplayModal(${trip.trip_id})" style="width: 100%; margin-top: 5px; padding: 5px;">▶ Replay</button>
+                `;
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error('Error:', err));
+}
+
+// Load Reports
+function loadReports() {
+    fetch('/api/reports', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('reports-container');
+            container.innerHTML = '';
+            
+            if (data.length === 0) {
+                container.innerHTML = '<p>No reports generated yet</p>';
+                return;
+            }
+            
+            data.forEach(rep => {
+                const div = document.createElement('div');
+                div.style = 'padding: 10px; background: #f8f9fa; margin-bottom: 10px; border-radius: 5px;';
+                div.innerHTML = `
+                    <strong>${rep.report_type.toUpperCase()} Report</strong><br>
+                    Vehicle: ${rep.vehicle_name || 'All'}<br>
+                    Period: ${rep.start_date} to ${rep.end_date}<br>
+                    Status: <span style="background: ${rep.status === 'completed' ? '#2ecc71' : '#f39c12'}; color: white; padding: 2px 5px; border-radius: 3px;">${rep.status}</span><br>
+                    <small>${new Date(rep.created_at).toLocaleString()}</small>
+                `;
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error('Error:', err));
+}
+
+function showTab(tabName) {
+    document.querySelectorAll('[id$="-tab"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('[id="' + tabName + '-tab"]').forEach(el => el.style.display = 'block');
+    
+    document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (tabName === 'incidents') loadIncidents();
+    if (tabName === 'alerts') loadEmergencyAlerts();
+    if (tabName === 'reports') loadReports();
+    if (tabName === 'users') loadUsers();
+    if (tabName === 'assignments') {
+        loadAssignmentForm();
+        loadAssignments();
+    }
+}
+
+function acknowledgeAlert(alertId) {
+    fetch(`/api/alert/${alertId}/acknowledge`, { 
+        method: 'POST',
+        credentials: 'same-origin'
+    })
+        .then(r => r.json())
+        .then(data => {
+            alert('Alert acknowledged');
+            loadEmergencyAlerts();
+        });
+}
+
+// Report Generation
+function openReportModal() {
+    document.getElementById('reportModal').style.display = 'block';
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').style.display = 'none';
+}
+
+function submitReport() {
+    const data = {
+        report_type: document.getElementById('report-type').value,
+        vehicle_id: document.getElementById('report-vehicle').value || null,
+        start_date: document.getElementById('report-start-date').value,
+        end_date: document.getElementById('report-end-date').value
+    };
+    
+    fetch('/api/report/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert('Report generation started!');
+        closeReportModal();
+        loadReports();
+    });
+}
+
+// Trip Replay
+function openReplayModal(tripId) {
+    selectedTrip = tripId;
+    document.getElementById('replayModal').style.display = 'block';
+    
+    if (!replayMap) {
+        replayMap = L.map('replay-map').setView([-1.286389, 36.816667], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(replayMap);
+    }
+}
+
+function closeReplayModal() {
+    document.getElementById('replayModal').style.display = 'none';
+    stopReplay();
+}
+
+function startReplay() {
+    if (!selectedTrip) return;
+    
+    fetch(`/api/trip/${selectedTrip}/replay`, { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            const trajectory = data.trajectory;
+            if (trajectory.length === 0) {
+                alert('No trajectory data for this trip');
+                return;
+            }
+            
+            isReplaying = true;
+            let index = 0;
+            
+            replayInterval = setInterval(() => {
+                if (index >= trajectory.length) {
+                    stopReplay();
+                    return;
+                }
+                
+                const point = trajectory[index];
+                replayMap.setView([point.lat, point.lon], 14);
+                index++;
+            }, 500);
+        });
+}
+
+function stopReplay() {
+    isReplaying = false;
+    if (replayInterval) clearInterval(replayInterval);
+}
+
+function generateReport() {
+    openReportModal();
+}
+
+function logoutAdmin() {
+    window.location.href = '/logout';
+}
+
+// ============ VEHICLE ASSIGNMENTS ============
+function loadAssignmentForm() {
+    // Load vehicles for assignment select
+    fetch('/api/vehicles', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(vehicles => {
+            const select = document.getElementById('assign-vehicle');
+            select.innerHTML = '<option value="">-- Choose Vehicle --</option>';
+            vehicles.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.vehicle_id;
+                option.textContent = `${v.vehicle_name} (${v.registration_number})`;
+                select.appendChild(option);
+            });
+        });
+    
+    // Load drivers for assignment select
+    fetch('/api/drivers', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(drivers => {
+            const select = document.getElementById('assign-driver');
+            select.innerHTML = '<option value="">-- Choose Driver --</option>';
+            drivers.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d.user_id;
+                option.textContent = `${d.full_name} (${d.username})`;
+                select.appendChild(option);
+            });
+        })
+        .catch(err => console.error('Error loading drivers:', err));
+}
+
+function submitAssignment() {
+    const vehicleId = document.getElementById('assign-vehicle').value;
+    const driverId = document.getElementById('assign-driver').value;
+    
+    if (!vehicleId || !driverId) {
+        alert('Please select both vehicle and driver');
+        return;
+    }
+    
+    const payload = {
+        vehicle_id: parseInt(vehicleId),
+        driver_user_id: parseInt(driverId)
+    };
+    
+    console.log('Submitting assignment:', payload);
+    
+    fetch('/api/assignment/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'same-origin'
+    })
+    .then(r => {
+        console.log('Response status:', r.status);
+        return r.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('Vehicle assigned successfully!');
+            document.getElementById('assign-vehicle').value = '';
+            document.getElementById('assign-driver').value = '';
+            loadAssignments();
+        }
+    })
+    .catch(err => {
+        console.error('Fetch error:', err);
+        alert('Failed to assign vehicle: ' + err.message);
+    });
+}
+
+function loadAssignments() {
+    fetch('/api/assignments', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(assignments => {
+            const container = document.getElementById('assignments-container');
+            container.innerHTML = '';
+            
+            if (assignments.length === 0 || assignments.error) {
+                container.innerHTML = '<p style="grid-column: 1/-1; padding: 20px; text-align: center; color: #7f8c8d;">No active assignments</p>';
+                return;
+            }
+            
+            assignments.forEach(assignment => {
+                const div = document.createElement('div');
+                div.style = 'background: white; border: 2px solid #3498db; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+                
+                const info = document.createElement('div');
+                info.innerHTML = `
+                    <div style="font-weight: bold; font-size: 16px; color: #2c3e50;">${assignment.vehicle_name}</div>
+                    <div style="color: #7f8c8d; font-size: 14px;">${assignment.registration_number}</div>
+                    <div style="margin-top: 8px; padding: 8px; background: #ecf0f1; border-radius: 5px; font-size: 14px;">
+                        <strong>Driver:</strong> ${assignment.full_name} (${assignment.username})
+                    </div>
+                `;
+                
+                const revokeBtn = document.createElement('button');
+                revokeBtn.className = 'btn-danger';
+                revokeBtn.textContent = '✗ Revoke';
+                revokeBtn.style.padding = '8px 15px';
+                revokeBtn.onclick = () => {
+                    if (confirm('Are you sure you want to revoke this assignment?')) {
+                        revokeAssignment(assignment.assignment_id);
+                    }
+                };
+                
+                div.appendChild(info);
+                div.appendChild(revokeBtn);
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error('Error:', err));
+}
+
+function revokeAssignment(assignmentId) {
+    fetch(`/api/assignment/${assignmentId}/revoke`, {
+        method: 'POST',
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('Assignment revoked successfully!');
+            loadAssignments();
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to revoke assignment');
+    });
+}
+
+// ============ USER MANAGEMENT ============
+function loadUsers() {
+    fetch('/api/users', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(users => {
+            const container = document.getElementById('users-container');
+            container.innerHTML = '';
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; padding: 20px; text-align: center; color: #7f8c8d;">No users found</p>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.style = 'background: white; border: 2px solid #3498db; padding: 15px; border-radius: 8px;';
+                
+                const statusBg = user.status === 'active' ? '#2ecc71' : '#e74c3c';
+                const roleColor = user.role === 'admin' ? '#9b59b6' : '#3498db';
+                
+                div.innerHTML = `
+                    <div style="font-weight: bold; font-size: 16px; color: #2c3e50;">${user.full_name}</div>
+                    <div style="color: #7f8c8d; font-size: 14px; margin-bottom: 8px;">@${user.username}</div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <span style="background: ${roleColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                            ${user.role.toUpperCase()}
+                        </span>
+                        <span style="background: ${statusBg}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                            ${user.status.toUpperCase()}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        ${user.status === 'active' 
+                            ? `<button class="btn-danger" onclick="updateUserStatus(${user.user_id}, 'inactive')" style="flex: 1; padding: 6px; font-size: 12px;">Deactivate</button>`
+                            : `<button class="btn-success" onclick="updateUserStatus(${user.user_id}, 'active')" style="flex: 1; padding: 6px; font-size: 12px;">Activate</button>`
+                        }
+                        <button class="btn-danger" onclick="deleteUser(${user.user_id})" style="flex: 1; padding: 6px; font-size: 12px;" title="Delete user">Delete</button>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error('Error:', err));
+}
+
+function submitNewUser() {
+    const username = document.getElementById('new-username').value.trim();
+    const fullname = document.getElementById('new-fullname').value.trim();
+    const password = document.getElementById('new-password').value;
+    const role = document.getElementById('new-role').value;
+    
+    if (!username || !fullname || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    if (username.length < 3) {
+        alert('Username must be at least 3 characters');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+    
+    fetch('/api/user/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: username,
+            password: password,
+            full_name: fullname,
+            role: role
+        }),
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('User created successfully!');
+            // Clear the form
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-fullname').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('new-role').value = 'driver';
+            loadUsers();
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to create user');
+    });
+}
+
+function updateUserStatus(userId, newStatus) {
+    const action = newStatus === 'active' ? 'Activate' : 'Deactivate';
+    if (!confirm(`Are you sure you want to ${action.toLowerCase()} this user?`)) {
+        return;
+    }
+    
+    fetch(`/api/user/${userId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert(action + 'ed successfully!');
+            loadUsers();
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to update user status');
+    });
+}
+
+function deleteUser(userId) {
+    if (!confirm('Are you sure you want to DELETE this user? This action cannot be undone.')) {
+        return;
+    }
+    
+    fetch(`/api/user/${userId}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('User deleted successfully!');
+            loadUsers();
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to delete user');
+    });
+}
+
+// Close modals on outside click
+window.onclick = function(event) {
+    let reportModal = document.getElementById('reportModal');
+    let replayModal = document.getElementById('replayModal');
+    if (event.target == reportModal) reportModal.style.display = 'none';
+    if (event.target == replayModal) replayModal.style.display = 'none';
+}
+
+// Initialize
+initMap();
+loadVehicles();
+updateStats();
+loadIncidents();
+loadIncidentsSummary();
+loadEmergencyAlerts();
+loadAlertsSummary();
+
+// Refresh data every 5 seconds
+setInterval(() => {
+    loadVehicles();
+    updateStats();
+}, 5000);
+
+// Refresh incidents and alerts every 10 seconds
+setInterval(() => {
+    loadIncidents();
+    loadIncidentsSummary();
+    loadEmergencyAlerts();
+    loadAlertsSummary();
+}, 10000);
+</script>
+
+</body>
+</html>
