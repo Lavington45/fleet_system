@@ -1,13 +1,18 @@
 from werkzeug.security import generate_password_hash
-import mysql.connector
+import psycopg2
+import os
 
 # Connect to database
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="fleet_system"
-)
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    conn = psycopg2.connect(database_url)
+else:
+    conn = psycopg2.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'postgres'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        dbname=os.environ.get('DB_NAME', 'fleet_system')
+    )
 cursor = conn.cursor()
 
 # Update demo users with hashed passwords

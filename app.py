@@ -2,13 +2,15 @@ from flask import Flask, render_template, request, redirect, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, timedelta
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 import json
 import re
 import logging
+import os
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key-change-this-in-production"
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -21,13 +23,16 @@ logger = logging.getLogger(__name__)
 # Database connection
 def get_db_connection():
     try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="fleet_system",
-            autocommit=False
-        )
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            conn = psycopg2.connect(database_url)
+        else:
+            conn = psycopg2.connect(
+                host=os.environ.get('DB_HOST', 'localhost'),
+                user=os.environ.get('DB_USER', 'postgres'),
+                password=os.environ.get('DB_PASSWORD', ''),
+                dbname=os.environ.get('DB_NAME', 'fleet_system')
+            )
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -93,7 +98,7 @@ def login():
             return render_template("login.html", error="Database error"), 500
         
         try:
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cursor.execute(
                 "SELECT user_id, username, password_hash, role, status FROM users WHERE username=%s",
                 (username,)
@@ -145,7 +150,7 @@ def get_users():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute(
             "SELECT user_id, username, full_name, role, status FROM users ORDER BY role, username"
         )
@@ -189,7 +194,7 @@ def create_user():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if username already exists
         cursor.execute("SELECT user_id FROM users WHERE username=%s", (username,))
@@ -225,7 +230,7 @@ def delete_user(user_id):
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if user exists
         cursor.execute("SELECT user_id, username FROM users WHERE user_id=%s", (user_id,))
@@ -275,7 +280,7 @@ def update_user_status(user_id):
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if user exists
         cursor.execute("SELECT user_id, username FROM users WHERE user_id=%s", (user_id,))
@@ -312,7 +317,7 @@ def vehicles():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT vehicle_id, vehicle_name, registration_number, lat, lon, speed,
                    connectivity_status, status, last_update
@@ -344,7 +349,7 @@ def my_vehicle():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT v.vehicle_id, v.vehicle_name, v.registration_number, a.driver_user_id
             FROM assignments a
@@ -384,7 +389,7 @@ def start_trip():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Verify driver owns this assignment
         cursor.execute(
@@ -431,7 +436,7 @@ def end_trip():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Verify trip ownership
         cursor.execute(
@@ -482,7 +487,7 @@ def update_vehicle():
         if not conn:
             return jsonify({"error": "Database error"}), 500
         
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Get vehicle ID from name
         cursor.execute("SELECT vehicle_id FROM vehicles WHERE vehicle_name=%s", (vehicle_name,))
@@ -594,7 +599,7 @@ def get_incidents():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT i.incident_id, i.vehicle_id, i.driver_user_id, i.incident_type, 
                    i.description, i.lat, i.lon, i.severity, i.status, i.reported_at,
@@ -686,7 +691,7 @@ def get_emergency_alerts():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT ea.alert_id, ea.vehicle_id, ea.driver_user_id, ea.message,
                    ea.lat, ea.lon, ea.priority, ea.status, ea.alert_time,
@@ -760,7 +765,7 @@ def trip_history():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT trip_id, vehicle_id, driver_user_id, start_time, end_time,
                    start_lat, start_lon, end_lat, end_lon, status, distance_traveled, avg_speed
@@ -793,7 +798,7 @@ def replay_trip(trip_id):
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT history_id, lat, lon, speed, accuracy, recorded_at
             FROM vehicle_history
@@ -823,7 +828,7 @@ def get_reports():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT r.report_id, r.report_type, r.start_date, r.end_date,
                    r.vehicle_id, r.status, r.created_at,
@@ -897,7 +902,7 @@ def get_notifications():
         return jsonify({"error": "Database error"}), 500
     
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
             SELECT notification_id, title, message, notification_type, is_read, created_at
             FROM notifications
@@ -954,7 +959,7 @@ def get_drivers():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute(
             "SELECT user_id, username, full_name FROM users WHERE role='driver' AND status='active'"
         )
@@ -989,7 +994,7 @@ def create_assignment():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if vehicle exists and is available
         cursor.execute("SELECT vehicle_id, vehicle_name FROM vehicles WHERE vehicle_id=%s", (vehicle_id,))
@@ -1040,7 +1045,7 @@ def get_assignments():
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute(
             """SELECT a.assignment_id, a.vehicle_id, a.driver_user_id, a.status,
                       v.vehicle_name, v.registration_number, u.full_name, u.username
@@ -1070,7 +1075,7 @@ def revoke_assignment(assignment_id):
     
     cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if assignment exists
         cursor.execute("SELECT * FROM assignments WHERE assignment_id=%s", (assignment_id,))

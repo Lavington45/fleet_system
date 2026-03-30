@@ -5,6 +5,7 @@ import json
 import logging
 from datetime import datetime
 from cryptography.fernet import Fernet
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -18,9 +19,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-URL = "http://127.0.0.1:5000/api/update_vehicle"
+URL = os.environ.get('API_URL', "http://127.0.0.1:5000/api/update_vehicle")
 BUFFER_FILE = "buffer.json"
-ENCRYPTION_KEY = "your-encryption-key-change-in-production"  # In production, store securely
+ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', "your-encryption-key-change-in-production")  # In production, store securely
 VEHICLES = [f"Vehicle{i}" for i in range(1, 21)]
 BASE_LAT = -1.286389
 BASE_LON = 36.816667
