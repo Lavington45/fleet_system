@@ -4,5 +4,5 @@ Werkzeug==2.3.0
 cryptography==41.0.0
 requests==2.31.0
 python-dotenv==1.0.0
-gunicorn==20.1.0
-setuptools==65.5.1
+gunicorn==22.0.0
+setuptools==70.0.0
