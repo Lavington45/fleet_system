@@ -39,6 +39,37 @@ def get_db_connection():
         print(f"Database connection failed: {e}")  # Add print for debugging
         return None
 
+
+def init_db():
+    conn = get_db_connection()
+    if conn is None:
+        print("Database connection failed. Tables not created.")
+        return
+    cursor = conn.cursor()
+
+    # Create vehicles table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vehicles (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            status VARCHAR(50)
+        )
+    """)
+
+    # Create users table (example)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(50),
+            email VARCHAR(100)
+        )
+    """)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Tables created or verified successfully.")
+
 # Validation functions
 def validate_username(username):
     if not username or len(username) < 3 or len(username) > 50:
@@ -1105,3 +1136,7 @@ def revoke_assignment(assignment_id):
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
+    
+if __name__ == "__main__":
+    init_db()  # Initialize tables on first run
+    app.run()
