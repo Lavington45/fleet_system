@@ -1,28 +1,17 @@
 from werkzeug.security import generate_password_hash
-import psycopg2
+import mysql.connector
 import os
 
 # Connect to database
-database_url = os.environ.get('DATABASE_URL')
 try:
-    if database_url:
-        print(f"Connecting using DATABASE_URL...")
-        conn = psycopg2.connect(database_url)
-    else:
-        host = os.environ.get('DB_HOST', 'localhost')
-        user = os.environ.get('DB_USER', 'postgres')
-        password = os.environ.get('DB_PASSWORD', '')
-        dbname = os.environ.get('DB_NAME', 'fleet_system')
-        
-        print(f"Connecting to {dbname} on {host}...")
-        conn = psycopg2.connect(
-            host=host,
-            user=user,
-            password=password,
-            dbname=dbname
-        )
-    
-    cursor = conn.cursor()
+    conn = mysql.connector.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'root'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        database=os.environ.get('DB_NAME', 'fleet_system'),
+        autocommit=False
+    )
+    cursor = conn.cursor(dictionary=True)
 
     # Update demo users with hashed passwords
     demo_users = [
@@ -30,13 +19,13 @@ try:
         ('driver1', 'driver123'),
         ('driver2', 'driver123')
     ]
-    
+
     for username, password in demo_users:
         cursor.execute(
             "UPDATE users SET password_hash=%s WHERE username=%s",
             (generate_password_hash(password), username)
         )
-    
+
     conn.commit()
     cursor.close()
     conn.close()

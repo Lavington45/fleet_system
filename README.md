@@ -1,6 +1,6 @@
 # 🚗 FleetGuard - Fleet Management System
 
-A comprehensive, secure vehicle tracking system built with Flask, MySQL, and real-time GPS tracking. Designed for fleet administrators and drivers with offline data buffering, emergency alerts, and historical playback.
+A comprehensive, secure vehicle tracking system built with Flask, PostgreSQL, and real-time GPS tracking. Designed for fleet administrators and drivers with offline data buffering, emergency alerts, and historical playback.
 
 ## 📋 Features
 
@@ -38,7 +38,7 @@ A comprehensive, secure vehicle tracking system built with Flask, MySQL, and rea
 ## 🛠 Tech Stack
 
 - **Backend**: Python Flask
-- **Database**: MySQL
+- **Database**: PostgreSQL
 - **Frontend**: HTML5, CSS3, JavaScript (ES6)
 - **Maps**: Leaflet.js + OpenStreetMap
 - **Simulator**: Python with realistic GPS movement
@@ -47,7 +47,7 @@ A comprehensive, secure vehicle tracking system built with Flask, MySQL, and rea
 
 ### Prerequisites
 - Python 3.8+
-- MySQL Server
+- PostgreSQL Server
 - Git (optional)
 
 ### 1. Clone or Extract the Project
@@ -74,26 +74,19 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Setup MySQL Database
+### 4. Setup PostgreSQL Database
 
 ```bash
-# Start MySQL service
-# Windows: net start MySQL80
-# Linux: sudo service mysql start
-# Mac: brew services start mysql
+# Start PostgreSQL service
+# Windows: net start postgresql-x64-15
+# Linux: sudo service postgresql start
+# Mac: brew services start postgresql
 
-# Connect to MySQL
-mysql -u root -p
+# Connect to PostgreSQL
+psql -U postgres
 
-# Create database (paste the contents of database_schema.sql)
-SOURCE database_schema.sql;
-```
-
-Or run the schema directly:
-
-```bash
-mysql -u root -p fleet_system < database_schema.sql
-```
+# Create database and run schema
+psql -U postgres -f schema.sql
 
 ### 5. Hash Demo Passwords (Optional but Recommended)
 
@@ -230,7 +223,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 ```python
 host="localhost"
 user="root"
-password=""  # Set your MySQL password
+password=""  # Set your PostgreSQL password
 database="fleet_system"
 ```
 
@@ -264,8 +257,8 @@ BUFFER_FILE = "buffer.json"  # Buffered data location
 
 ### Database Connection Error
 ```
-Solution: Ensure MySQL is running and credentials in app.py are correct
-mysql -u root -p
+Solution: Ensure PostgreSQL is running and credentials in app.py are correct
+psql -U postgres
 SHOW DATABASES;
 ```
 
@@ -303,28 +296,40 @@ Allow HTTPS (in production) for geolocation to work
 
 ### Backup Database
 ```bash
-mysqldump -u root -p fleet_system > backup_fleet_system.sql
+pg_dump -U postgres fleet_system > backup_fleet_system.sql
 ```
 
 ### Restore Database
 ```bash
-mysql -u root -p fleet_system < backup_fleet_system.sql
+psql -U postgres -d fleet_system < backup_fleet_system.sql
 ```
 
-## 🚀 Production Deployment
+## � Development Setup
 
-Before deploying to production:
+### Local Development
+1. **Environment Variables** (optional)
+   - Create `.env` file in project root:
+   ```
+   DB_HOST=localhost
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_NAME=fleet_system
+   SECRET_KEY=your-secret-key
+   ```
 
-1. **Change Secret Keys**
-   - Update `app.secret_key` to a strong random string
-   - Update `ENCRYPTION_KEY` in simulator.py
+2. **Run the Application**
+   ```bash
+   python app.py
+   ```
 
-2. **Enable HTTPS**
-   - Use gunicorn with SSL certificates
-   - Update browser geolocation settings
+3. **Access the App**
+   - Admin: http://localhost:5000
+   - Login: admin/admin123
 
-3. **Database Security**
-   - Create dedicated MySQL user with limited permissions
+### Database Management
+- Use `setup_users.py` to initialize demo users
+- Use `schema.sql` to recreate tables if needed
+- Use `simulator.py` to simulate vehicle movement
    - Use strong passwords
    - Enable MySQL SSL
 
