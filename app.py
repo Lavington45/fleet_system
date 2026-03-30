@@ -33,42 +33,50 @@ def get_db_connection():
                 password=os.environ.get('DB_PASSWORD', ''),
                 dbname=os.environ.get('DB_NAME', 'fleet_system')
             )
+        # Test the connection
+        conn.cursor().execute("SELECT 1")
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
-        print(f"Database connection failed: {e}")  # Add print for debugging
+        print(f"Database connection failed: {e}")
         return None
 
 
 def init_db():
-    conn = get_db_connection()
-    if conn is None:
-        print("Database connection failed. Tables not created.")
-        return
-    cursor = conn.cursor()
+    """Initialize database tables - ONLY for development/local use"""
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            print("Database connection failed. Tables not created.")
+            return
 
-    # Create vehicles table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS vehicles (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(100),
-            status VARCHAR(50)
-        )
-    """)
+        cursor = conn.cursor()
 
-    # Create users table (example)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username VARCHAR(50),
-            email VARCHAR(100)
-        )
-    """)
+        # Create vehicles table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS vehicles (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100),
+                status VARCHAR(50)
+            )
+        """)
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-    print("Tables created or verified successfully.")
+        # Create users table (example)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50),
+                email VARCHAR(100)
+            )
+        """)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("Tables created or verified successfully.")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        print("Continuing without table creation...")
 
 # Validation functions
 def validate_username(username):
@@ -1136,7 +1144,8 @@ def revoke_assignment(assignment_id):
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
-    
+
 if __name__ == "__main__":
-    init_db()  # Initialize tables on first run
-    app.run()
+    # Database should be initialized separately in production
+    # For local development, run init_db() manually if needed
+    app.run(debug=True, host="127.0.0.1", port=5000)
