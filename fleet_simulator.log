@@ -70580,3 +70580,58 @@
 2026-03-29 22:46:17,254 - INFO - Buffer status: 0 records pending
 2026-03-29 22:46:55,121 - INFO - Buffer status: 0 records pending
 2026-03-29 22:47:33,114 - INFO - Buffer status: 0 records pending
+2026-03-29 22:48:15,845 - INFO - Buffer status: 0 records pending
+2026-03-29 22:48:55,357 - INFO - Buffer status: 0 records pending
+2026-03-29 22:49:33,381 - INFO - Buffer status: 0 records pending
+2026-03-29 22:50:12,687 - INFO - Buffer status: 0 records pending
+2026-03-29 22:50:51,809 - INFO - Buffer status: 0 records pending
+2026-03-29 22:51:31,545 - INFO - Buffer status: 0 records pending
+2026-03-29 22:52:08,701 - INFO - Buffer status: 0 records pending
+2026-03-29 22:52:47,229 - INFO - Buffer status: 0 records pending
+2026-03-29 22:53:25,125 - INFO - Buffer status: 0 records pending
+2026-03-29 22:54:04,430 - INFO - Buffer status: 0 records pending
+2026-03-29 22:54:42,032 - INFO - Buffer status: 0 records pending
+2026-03-29 22:55:19,117 - INFO - Buffer status: 0 records pending
+2026-03-29 22:55:59,110 - INFO - Buffer status: 0 records pending
+2026-03-29 22:56:36,749 - INFO - Buffer status: 0 records pending
+2026-03-29 22:57:15,383 - INFO - Buffer status: 0 records pending
+2026-03-29 22:57:52,851 - INFO - Buffer status: 0 records pending
+2026-03-29 22:58:30,613 - INFO - Buffer status: 0 records pending
+2026-03-29 22:59:08,447 - INFO - Buffer status: 0 records pending
+2026-03-29 22:59:46,353 - INFO - Buffer status: 0 records pending
+2026-03-29 23:00:24,142 - INFO - Buffer status: 0 records pending
+2026-03-29 23:01:01,867 - INFO - Buffer status: 0 records pending
+2026-03-29 23:01:40,168 - INFO - Buffer status: 0 records pending
+2026-03-29 23:02:19,715 - INFO - Buffer status: 0 records pending
+2026-03-29 23:02:57,470 - INFO - Buffer status: 0 records pending
+2026-03-29 23:03:36,179 - INFO - Buffer status: 0 records pending
+2026-03-29 23:04:14,237 - INFO - Buffer status: 0 records pending
+2026-03-29 23:04:51,455 - INFO - Buffer status: 0 records pending
+2026-03-29 23:05:28,798 - INFO - Buffer status: 0 records pending
+2026-03-29 23:06:05,781 - INFO - Buffer status: 0 records pending
+2026-03-29 23:06:42,855 - INFO - Buffer status: 0 records pending
+2026-03-29 23:07:20,258 - INFO - Buffer status: 0 records pending
+2026-03-29 23:07:57,563 - INFO - Buffer status: 0 records pending
+2026-03-29 23:08:34,743 - INFO - Buffer status: 0 records pending
+2026-03-29 23:09:12,284 - INFO - Buffer status: 0 records pending
+2026-03-29 23:09:49,658 - INFO - Buffer status: 0 records pending
+2026-03-29 23:10:28,355 - INFO - Buffer status: 0 records pending
+2026-03-29 23:11:07,599 - INFO - Buffer status: 0 records pending
+2026-03-29 23:11:44,841 - INFO - Buffer status: 0 records pending
+2026-03-29 23:12:22,598 - INFO - Buffer status: 0 records pending
+2026-03-29 23:13:02,912 - INFO - Buffer status: 0 records pending
+2026-03-29 23:13:40,760 - INFO - Buffer status: 0 records pending
+2026-03-29 23:14:18,020 - INFO - Buffer status: 0 records pending
+2026-03-29 23:14:55,538 - INFO - Buffer status: 0 records pending
+2026-03-29 23:15:34,259 - INFO - Buffer status: 0 records pending
+2026-03-29 23:16:12,378 - INFO - Buffer status: 0 records pending
+2026-03-29 23:16:50,312 - INFO - Buffer status: 0 records pending
+2026-03-29 23:17:28,211 - INFO - Buffer status: 0 records pending
+2026-03-29 23:18:05,964 - INFO - Buffer status: 0 records pending
+2026-03-29 23:18:44,036 - INFO - Buffer status: 0 records pending
+2026-03-29 23:19:23,464 - INFO - Buffer status: 0 records pending
+2026-03-29 23:20:02,607 - WARNING - Connection error for Vehicle20 (attempt 1/3)
+2026-03-29 23:20:05,626 - WARNING - Connection error for Vehicle20 (attempt 2/3)
+2026-03-29 23:20:08,653 - WARNING - Connection error for Vehicle20 (attempt 3/3)
+2026-03-29 23:20:08,670 - WARNING - Data buffered for Vehicle20 (Total: 1)
+2026-03-29 23:20:09,762 - INFO - Final buffer status: 1 pending records
