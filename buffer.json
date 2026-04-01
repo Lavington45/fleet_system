@@ -1,11 +1,11 @@
 [
   {
-    "timestamp": "2026-03-29T23:20:08.663025",
+    "timestamp": "2026-03-30T22:26:16.411928",
     "vehicle": "Vehicle20",
-    "lat": -1.34037847,
-    "lon": 36.93004988,
-    "speed": 86,
-    "trip_id": 792,
+    "lat": -1.31925795,
+    "lon": 36.87381724,
+    "speed": 107,
+    "trip_id": 418,
     "encrypted": false
   }
 ]

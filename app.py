@@ -37,7 +37,7 @@ def get_db_connection():
 
 
 def init_db():
-    """Initialize database tables - ONLY for development/local use"""
+    """Initialize database tables and sample data for local development."""
     try:
         conn = get_db_connection()
         if conn is None:
@@ -46,28 +46,106 @@ def init_db():
 
         cursor = conn.cursor()
 
-        # Create vehicles table
+        # Users table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS vehicles (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(100),
-                status VARCHAR(50)
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(100) NOT NULL,
+                email VARCHAR(100),
+                role ENUM('admin', 'driver') NOT NULL,
+                status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         """)
 
-        # Create users table (example)
+        # Vehicles table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(50),
-                email VARCHAR(100)
+            CREATE TABLE IF NOT EXISTS vehicles (
+                vehicle_id INT AUTO_INCREMENT PRIMARY KEY,
+                vehicle_name VARCHAR(100) UNIQUE NOT NULL,
+                registration_number VARCHAR(50) UNIQUE NOT NULL,
+                lat DECIMAL(10, 8) DEFAULT 0,
+                lon DECIMAL(11, 8) DEFAULT 0,
+                speed INT DEFAULT 0,
+                connectivity_status ENUM('online', 'offline') DEFAULT 'offline',
+                status ENUM('active', 'inactive') DEFAULT 'active',
+                last_update TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Trips table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS trips (
+                trip_id INT AUTO_INCREMENT PRIMARY KEY,
+                vehicle_id INT NOT NULL,
+                driver_user_id INT NOT NULL,
+                start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                end_time TIMESTAMP NULL,
+                start_lat DECIMAL(10, 8),
+                start_lon DECIMAL(11, 8),
+                end_lat DECIMAL(10, 8),
+                end_lon DECIMAL(11, 8),
+                status ENUM('ongoing', 'completed', 'cancelled') NOT NULL DEFAULT 'ongoing',
+                distance_traveled DECIMAL(10, 2),
+                avg_speed DECIMAL(6, 2),
+                FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id),
+                FOREIGN KEY (driver_user_id) REFERENCES users(user_id)
+            )
+        """)
+
+        # Vehicle history table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS vehicle_history (
+                history_id INT AUTO_INCREMENT PRIMARY KEY,
+                vehicle_id INT NOT NULL,
+                trip_id INT,
+                lat DECIMAL(10, 8),
+                lon DECIMAL(11, 8),
+                speed INT,
+                accuracy INT,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE CASCADE,
+                FOREIGN KEY (trip_id) REFERENCES trips(trip_id) ON DELETE SET NULL
+            )
+        """)
+
+        # Seed admin/driver users for local use (if missing)
+        admin_hash = generate_password_hash('admin123')
+        driver_hash = generate_password_hash('driver123')
+        cursor.execute("""
+            INSERT INTO users (username, password_hash, full_name, email, role, status)
+            VALUES ('admin', %s, 'Administrator', 'admin@fleet.local', 'admin', 'active')
+            ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)
+        """, (admin_hash,))
+        cursor.execute("""
+            INSERT INTO users (username, password_hash, full_name, email, role, status)
+            VALUES ('driver1', %s, 'John Driver', 'driver1@fleet.local', 'driver', 'active')
+            ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)
+        """, (driver_hash,))
+
+        cursor.execute("""
+            INSERT INTO users (username, password_hash, full_name, email, role, status)
+            VALUES ('driver2', %s, 'Jane Driver', 'driver2@fleet.local', 'driver', 'active')
+            ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)
+        """, (driver_hash,))
+
+        # Seed demo vehicles (if missing)
+        for i in range(1, 21):
+            cursor.execute("""
+                INSERT INTO vehicles (vehicle_name, registration_number, status)
+                VALUES (%s, %s, 'active')
+                ON DUPLICATE KEY UPDATE status=VALUES(status)
+            """, (f'Vehicle{i}', f'REG{100+i}',))
 
         conn.commit()
         cursor.close()
         conn.close()
-        print("Tables created or verified successfully.")
+
+        print("✅ Database initialized and sample data seeded.")
     except Exception as e:
         print(f"Database initialization error: {e}")
         print("Continuing without table creation...")
@@ -1137,7 +1215,7 @@ def revoke_assignment(assignment_id):
             conn.close()
 
 if __name__ == "__main__":
-    # Database should be initialized separately in production
-    # For local development, run init_db() manually if needed
+    # Init database and seed data for local MySQL/XAMPP development
+    init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
